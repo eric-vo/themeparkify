@@ -4,7 +4,9 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 
-import commands
+import commands.attraction as attraction
+import commands.sync as sync
+
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -18,6 +20,8 @@ tree = app_commands.CommandTree(client)
 
 
 def main():
+    tree.add_command(Attraction(), guild=GUILD)
+
     client.run(DISCORD_TOKEN)
 
 
@@ -28,7 +32,19 @@ async def on_ready():
 
 @tree.command(description="Sync application commands.", guild=GUILD)
 async def sync_commands(interaction):
-    await commands.sync_commands(interaction, tree, GUILD)
+    await sync.sync_commands(interaction, tree, GUILD)
+
+
+class Attraction(app_commands.Group):
+    """Get/manage attractions."""
+
+    @app_commands.command(description="Get data for an attraction.")
+    @app_commands.describe(
+        park_name="The theme park to search.",
+        attraction_name="The attraction to search for."
+    )
+    async def get(self, interaction, park_name: str, attraction_name: str):
+        await attraction.get(interaction, park_name, attraction_name)
 
 
 main()
