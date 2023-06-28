@@ -1,2 +1,2 @@
 # themeparkify
-A Discord bot for all things theme parks.
+A Discord bot to assist with all things theme parks.
