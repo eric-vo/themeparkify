@@ -5,6 +5,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 
 import commands.attraction as attraction
+import commands.destination as destination
 import commands.sync as sync
 
 load_dotenv()
@@ -20,6 +21,7 @@ tree = app_commands.CommandTree(client)
 
 def main():
     tree.add_command(Attraction(), guild=GUILD)
+    tree.add_command(Destination(), guild=GUILD)
 
     client.run(DISCORD_TOKEN)
 
@@ -46,8 +48,21 @@ class Attraction(app_commands.Group):
             "The theme park to search. Type all or part of the name."
         )
     )
-    async def get(self, interaction, attraction_name: str, park_name: str):
-        await attraction.get(interaction, attraction_name, park_name)
+    async def get(self, interaction, park_name: str, attraction_name: str):
+        await attraction.get(interaction, park_name, attraction_name)
+
+
+class Destination(app_commands.Group):
+    """Get/manage destinations."""
+
+    @app_commands.command(description="Add a destination to the search list.")
+    @app_commands.describe(
+        destination_name=(
+            "The destination to add. Type all of part of the name."
+        )
+    )
+    async def add(self, interaction, destination_name: str):
+        await destination.add(interaction, destination_name)
 
 
 main()
