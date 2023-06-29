@@ -17,9 +17,8 @@ def require_destinations(func):
             )
 
             await interaction.response.send_message(embeds=[embed_message])
-
             return
 
-        func(interaction, *args, **kwargs)
+        await func(interaction, *args, **kwargs)
 
     return inner

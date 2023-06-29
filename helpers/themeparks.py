@@ -17,9 +17,7 @@ def get_destinations():
         try:
             return api_instance.get_destinations()["destinations"]
         except openapi_client.ApiException as e:
-            raise openapi_client.ApiException(
-                log_error("DestinationsApi->get_destinations", e)
-            )
+            log_error("DestinationsApi->get_destinations", e)
 
 
 def get_entity(entity_id, type=None, year=None, month=None):
@@ -34,43 +32,29 @@ def get_entity(entity_id, type=None, year=None, month=None):
                 try:
                     return api_instance.get_entity_children(entity_id)
                 except openapi_client.ApiException as e:
-                    raise openapi_client.ApiException(
-                        log_error("EntitiesApi->get_entity_children", e)
-                    )
+                    log_error("EntitiesApi->get_entity_children", e)
             elif type == "live":
                 try:
                     return api_instance.get_entity_live_data(entity_id)
                 except openapi_client.ApiException as e:
-                    raise openapi_client.ApiException(
-                        log_error("EntitiesApi->get_entity_live_data", e)
-                    )
+                    log_error("EntitiesApi->get_entity_live_data", e)
             elif type == "schedule_upcoming":
                 try:
                     return api_instance.get_entity_schedule_upcoming(entity_id)
                 except openapi_client.ApiException as e:
-                    raise openapi_client.ApiException(
-                        log_error(
-                            "EntitiesApi->get_entity_schedule_upcoming", e
-                        )
-                    )
+                    log_error("EntitiesApi->get_entity_schedule_upcoming", e)
             elif type == "schedule_year_month":
                 try:
                     return api_instance.get_entity_schedule_year_month(
                         entity_id, year, month
                     )
                 except openapi_client.ApiException as e:
-                    raise openapi_client.ApiException(
-                        log_error(
-                            "EntitiesApi->get_entity_schedule_year_month", e
-                        )
-                    )
+                    log_error("EntitiesApi->get_entity_schedule_year_month", e)
         else:
             try:
                 return api_instance.get_entity(entity_id)
             except openapi_client.ApiException as e:
-                raise openapi_client.ApiException(
-                    log_error("EntitiesApi->get_entity", e)
-                )
+                log_error("EntitiesApi->get_entity", e)
 
 
 def log_error(call, e):
@@ -79,10 +63,7 @@ def log_error(call, e):
     Returns the generated error message.
     """
 
-    error_message = (f"Exception when calling {call}: {e}")
-
-    print(error_message)
-    return error_message
+    print(f"Exception when calling {call}: {e}")
 
 
 # park_query is required to improve searching times
@@ -136,10 +117,7 @@ def search_for_destinations(destination_query, destination_ids=None):
     Returns a list of matching destinations.
     """
 
-    try:
-        destinations = get_destinations()
-    except openapi_client.ApiException as e:
-        raise openapi_client.ApiException(e)
+    destinations = get_destinations()
 
     if destination_ids is not None:
         destinations_to_search = []
@@ -167,15 +145,12 @@ def search_for_parks(park_query, destination_ids, destination_query=None):
     Returns a list of matching parks.
     """
 
-    try:
-        if destination_query is not None:
-            destinations = search_for_destinations(
-                destination_query, destination_ids
-            )
-        else:
-            destinations = search_for_destinations("", destination_ids)
-    except openapi_client.ApiException as e:
-        raise openapi_client.ApiException(e)
+    if destination_query is not None:
+        destinations = search_for_destinations(
+            destination_query, destination_ids
+        )
+    else:
+        destinations = search_for_destinations("", destination_ids)
 
     park_query = park_query.strip().lower()
 

@@ -8,17 +8,9 @@ import helpers.themeparks as themeparks
 async def add(interaction, destination_name):
     await interaction.response.defer()
 
-    try:
-        destinations = themeparks.search_for_destinations(
-            destination_name
-        )
-    except openapi_client.ApiException as e:
-        message_embed = embed.create_embed("Error", e)
-
-        await interaction.followup.send(embeds=[message_embed])
-        return
-
-    print(destinations)
+    destinations = themeparks.search_for_destinations(
+        destination_name
+    )
 
     if not destinations:
         message_embed = embed.create_embed(
@@ -36,32 +28,31 @@ async def add(interaction, destination_name):
             f"**{destination_name}**."
         )
 
+        count = 0
         for destination in destinations:
-            print("field")
             try:
-                try:
-                    location = themeparks.get_entity(
-                        destination["id"]
-                    )["location"]
+                location = themeparks.get_entity(
+                    destination["id"]
+                )["location"]
 
-                    address = (
-                        "[Google Maps]"
-                        "(https://www.google.com/maps/place/"
-                        f"{location['latitude']},{location['longitude']})"
-                    )
-                except openapi_client.ApiAttributeError:
-                    address = ""
-            except openapi_client.ApiException as e:
-                message_embed = embed.create_embed("Error", e)
-
-                await interaction.followup.send(embeds=[message_embed])
-                return
+                address = (
+                    "[Google Maps]"
+                    "(https://www.google.com/maps/place/"
+                    f"{location['latitude']},{location['longitude']})"
+                )
+            except openapi_client.ApiAttributeError:
+                address = ""
 
             message_embed.add_field(
                 name=destination["name"],
                 value=address,
                 inline=False
             )
+
+            if count >= embed.MAX_FIELDS - 1:
+                break
+
+            count += 1
 
         await interaction.followup.send(embeds=[message_embed])
         return
@@ -94,27 +85,20 @@ async def add(interaction, destination_name):
 
     if current_destinations is not None:
         for destination in current_destinations:
+            entity = themeparks.get_entity(destination["destination_id"])
+
             try:
-                try:
-                    location = themeparks.get_entity(
-                        destination["id"]
-                    )["location"]
-
-                    address = (
-                        "[Google Maps]"
-                        "(https://www.google.com/maps/place/"
-                        f"{location['latitude']},{location['longitude']})"
-                    )
-                except openapi_client.ApiAttributeError:
-                    address = ""
-            except openapi_client.ApiException as e:
-                message_embed = embed.create_embed("Error", e)
-
-                await interaction.followup.send(embeds=[message_embed])
-                return
+                location = entity["location"]
+                address = (
+                    "[Google Maps]"
+                    "(https://www.google.com/maps/place/"
+                    f"{location['latitude']},{location['longitude']})"
+                )
+            except openapi_client.ApiAttributeError:
+                address = ""
 
             message_embed.add_field(
-                name=destination["name"],
+                name=entity["name"],
                 value=address,
                 inline=False
             )
