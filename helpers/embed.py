@@ -1,7 +1,7 @@
 import discord
 
 EMBED_DEFAULTS = {
-    "color": discord.Color.green()
+    "color": discord.Color.og_blurple()
 }
 
 
