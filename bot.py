@@ -64,5 +64,16 @@ class Destination(app_commands.Group):
     async def add(self, interaction, destination_name: str):
         await destination.add(interaction, destination_name)
 
+    @app_commands.command(
+        description="Remove a destination from the search list."
+    )
+    @app_commands.describe(
+        destination_name=(
+            "The destination to remove. Type all of part of the name."
+        )
+    )
+    async def remove(self, interaction, destination_name: str):
+        await destination.remove(interaction, destination_name)
+
 
 main()
