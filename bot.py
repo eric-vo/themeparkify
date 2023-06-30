@@ -48,8 +48,16 @@ class Attraction(app_commands.Group):
             "The theme park to search. Type all or part of the name."
         )
     )
-    async def get(self, interaction, park_name: str, attraction_name: str):
-        await attraction.get(interaction, park_name, attraction_name)
+    async def get(
+        self,
+        interaction,
+        park_name: str,
+        attraction_name: str,
+        destination_name: str = None
+    ):
+        await attraction.get(
+            interaction, park_name, attraction_name, destination_name
+        )
 
 
 class Destination(app_commands.Group):

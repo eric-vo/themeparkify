@@ -4,6 +4,8 @@ from openapi_client.api import entities_api
 
 configuration = openapi_client.Configuration()
 
+# TODO: Make the API calls asynchronous to improve responsiveness
+
 
 # ThemeParks API: https://api.themeparks.wiki/docs/v1/
 def get_destinations():
@@ -35,8 +37,12 @@ def get_entity(entity_id, type=None, year=None, month=None):
                     except openapi_client.ApiException as e:
                         log_error("EntitiesApi->get_entity_children", e)
                 case "live":
+                    # Have to bypass return type check
+                    # This is a bug with the API
                     try:
-                        return api_instance.get_entity_live_data(entity_id)
+                        return api_instance.get_entity_live_data(
+                            entity_id, _check_return_type=False
+                        )
                     except openapi_client.ApiException as e:
                         log_error("EntitiesApi->get_entity_live_data", e)
                 case "schedule_upcoming":
@@ -111,6 +117,7 @@ def search_for_entities(
                 continue
 
             if entity_query in child["name"].lower():
+                child["park_name"] = park["name"]
                 matches.append(child)
 
     return matches
