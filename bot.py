@@ -75,5 +75,11 @@ class Destination(app_commands.Group):
     async def remove(self, interaction, destination_name: str):
         await destination.remove(interaction, destination_name)
 
+    @app_commands.command(
+        description="View your added destinations."
+    )
+    async def view(self, interaction):
+        await destination.view(interaction)
+
 
 main()

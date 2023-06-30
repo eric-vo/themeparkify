@@ -28,28 +28,35 @@ def get_entity(entity_id, type=None, year=None, month=None):
         api_instance = entities_api.EntitiesApi(api_client)
 
         if type is not None:
-            if type == "children":
-                try:
-                    return api_instance.get_entity_children(entity_id)
-                except openapi_client.ApiException as e:
-                    log_error("EntitiesApi->get_entity_children", e)
-            elif type == "live":
-                try:
-                    return api_instance.get_entity_live_data(entity_id)
-                except openapi_client.ApiException as e:
-                    log_error("EntitiesApi->get_entity_live_data", e)
-            elif type == "schedule_upcoming":
-                try:
-                    return api_instance.get_entity_schedule_upcoming(entity_id)
-                except openapi_client.ApiException as e:
-                    log_error("EntitiesApi->get_entity_schedule_upcoming", e)
-            elif type == "schedule_year_month":
-                try:
-                    return api_instance.get_entity_schedule_year_month(
-                        entity_id, year, month
-                    )
-                except openapi_client.ApiException as e:
-                    log_error("EntitiesApi->get_entity_schedule_year_month", e)
+            match type:
+                case "children":
+                    try:
+                        return api_instance.get_entity_children(entity_id)
+                    except openapi_client.ApiException as e:
+                        log_error("EntitiesApi->get_entity_children", e)
+                case "live":
+                    try:
+                        return api_instance.get_entity_live_data(entity_id)
+                    except openapi_client.ApiException as e:
+                        log_error("EntitiesApi->get_entity_live_data", e)
+                case "schedule_upcoming":
+                    try:
+                        return api_instance.get_entity_schedule_upcoming(
+                            entity_id
+                        )
+                    except openapi_client.ApiException as e:
+                        log_error(
+                            "EntitiesApi->get_entity_schedule_upcoming", e
+                        )
+                case "schedule_year_month":
+                    try:
+                        return api_instance.get_entity_schedule_year_month(
+                            entity_id, year, month
+                        )
+                    except openapi_client.ApiException as e:
+                        log_error(
+                            "EntitiesApi->get_entity_schedule_year_month", e
+                        )
         else:
             try:
                 return api_instance.get_entity(entity_id)
@@ -84,9 +91,7 @@ def search_for_entities(
             park_query, destination_ids, destination_query
         )
     else:
-        parks = search_for_parks(
-            park_query, destination_ids
-        )
+        parks = search_for_parks(park_query, destination_ids)
 
     entity_query = entity_query.strip().lower()
 
@@ -139,7 +144,9 @@ def search_for_destinations(destination_query, destination_ids=None):
     return matches
 
 
-def search_for_parks(park_query, destination_ids, destination_query=None):
+def search_for_parks(
+    park_query, destination_ids, destination_query=None
+):
     """Search for a park with the given queries and destination IDs.
 
     Returns a list of matching parks.

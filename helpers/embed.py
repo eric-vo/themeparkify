@@ -1,7 +1,7 @@
 import discord
 
 EMBED_DEFAULTS = {
-    "color": discord.Color.og_blurple()
+    "color": discord.Color(0x00a8fc)
 }
 
 MAX_FIELDS = 25
