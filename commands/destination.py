@@ -1,11 +1,12 @@
+import aiohttp
+import asyncio
+
 import helpers.database as db
 import helpers.embed as embed
 import helpers.themeparks as themeparks
 
 
 async def add(interaction, destination_name):
-    await interaction.response.defer()
-
     current_destinations = get_user_destinations(interaction)
 
     if len(current_destinations) >= 25:
@@ -14,76 +15,82 @@ async def add(interaction, destination_name):
             "Try removing some with `/destination remove`!"
         )
 
-        return await interaction.followup.send(embeds=[error_embed])
+        return await interaction.response.send_message(embed=error_embed)
 
-    destinations = themeparks.search_for_destinations(
-        destination_name
-    )
-
-    if not await validate_destinations(
-        interaction, destinations, destination_name
-    ):
-        return
-
-    if len(destinations) > 1:
-        error_embed = embed.create_search_error_embed(
-            "Multiple destinations", destination_name
-        )
-        error_embed.add_field(
-            name="Fetching matching destinations...", value=""
-        )
-        await interaction.followup.send(embeds=[error_embed])
-
-        error_embed.clear_fields()
-
-        for i, destination in enumerate(destinations):
-            entity = themeparks.get_entity(destination["id"])
-            embed.add_address(error_embed, entity)
-
-            if i >= embed.MAX_FIELDS - 1:
-                break
-
-        return await interaction.edit_original_response(embeds=[error_embed])
-
-    destination_id = destinations[0]["id"]
-
-    duplicate_destinations = db.execute(
-        "SELECT * FROM destinations WHERE user_id = ? AND destination_id = ?",
-        interaction.user.id,
-        destination_id
-    )
-
-    if duplicate_destinations:
-        error_embed = embed.create_error_embed(
-            f"`{destinations[0]['name']}` "
-            "is already in your list of destinations!"
+    async with aiohttp.ClientSession() as session:
+        destinations = await themeparks.search_for_destinations(
+            session, destination_name
         )
 
-        return await interaction.followup.send(embeds=[error_embed])
+        if not await validate_destinations(
+            interaction, destinations, destination_name
+        ):
+            return
 
-    db.execute(
-        "INSERT INTO destinations (user_id, destination_id) "
-        "VALUES (?, ?)",
-        interaction.user.id,
-        destination_id
-    )
+        if len(destinations) > 1:
+            error_embed = embed.create_search_error_embed(
+                "Multiple destinations", destination_name
+            )
 
-    success_embed = create_destinations_embed(
-        f"Added {destinations[0]['name']}!"
-    )
+            tasks = []
+            for i, destination in enumerate(destinations):
+                tasks.append(asyncio.create_task(
+                    themeparks.get_entity(session, destination["id"])
+                ))
 
-    current_destinations = get_user_destinations(interaction)
+                if i >= embed.MAX_FIELDS - 1:
+                    break
 
-    for destination in current_destinations:
-        entity = themeparks.get_entity(destination["destination_id"])
-        embed.add_address(success_embed, entity)
+            entities = await asyncio.gather(*tasks)
+            embed.add_addresses(error_embed, entities)
 
-    await interaction.followup.send(embeds=[success_embed])
+            return await interaction.response.send_message(embed=error_embed)
+
+        destination_id = destinations[0]["id"]
+
+        duplicate_destinations = db.execute(
+            "SELECT * FROM destinations "
+            "WHERE user_id = ? "
+            "AND destination_id = ?",
+            interaction.user.id,
+            destination_id
+        )
+
+        if duplicate_destinations:
+            error_embed = embed.create_error_embed(
+                f"`{destinations[0]['name']}` "
+                "is already in your list of destinations!"
+            )
+
+            return await interaction.response.send_message(embed=error_embed)
+
+        db.execute(
+            "INSERT INTO destinations (user_id, destination_id) "
+            "VALUES (?, ?)",
+            interaction.user.id,
+            destination_id
+        )
+
+        success_embed = create_destinations_embed(
+            f"Added {destinations[0]['name']}!"
+        )
+
+        current_destinations = get_user_destinations(interaction)
+
+        tasks = []
+        for destination in current_destinations:
+            tasks.append(asyncio.create_task(
+                themeparks.get_entity(session, destination["destination_id"])
+            ))
+
+        entities = await asyncio.gather(*tasks)
+
+    embed.add_addresses(success_embed, entities)
+
+    await interaction.response.send_message(embed=success_embed)
 
 
 async def remove(interaction, destination_name):
-    await interaction.response.defer()
-
     current_destinations = get_user_destinations(interaction)
 
     destination_name = destination_name.strip().lower()
@@ -91,67 +98,77 @@ async def remove(interaction, destination_name):
     matches = []
     remaining_entities = []
 
-    for destination in current_destinations:
-        entity = themeparks.get_entity(destination["destination_id"])
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for destination in current_destinations:
+            tasks.append(asyncio.create_task(
+                themeparks.get_entity(session, destination["destination_id"])
+            ))
 
-        if destination_name in entity["name"].lower():
-            matches.append(entity)
+        entities = await asyncio.gather(*tasks)
+        for entity in entities:
+            if destination_name in entity["name"].lower():
+                matches.append(entity)
+            else:
+                remaining_entities.append(entity)
+
+        if not await validate_destinations(
+            interaction, matches, destination_name
+        ):
+            return
+
+        if len(matches) > 1:
+            error_embed = embed.create_search_error_embed(
+                "Multiple destinations", destination_name
+            )
+
+            embed.add_addresses(error_embed, matches)
+
+            return await interaction.response.send_message(embed=error_embed)
+
+        db.execute(
+            "DELETE FROM destinations "
+            "WHERE user_id = ? "
+            "AND destination_id = ?",
+            interaction.user.id,
+            matches[0]["id"]
+        )
+
+        success_embed = create_destinations_embed(
+            f"Removed {matches[0]['name']}!"
+        )
+
+        if remaining_entities:
+            embed.add_addresses(success_embed, remaining_entities)
         else:
-            remaining_entities.append(entity)
+            add_no_destinations(success_embed)
 
-    if not await validate_destinations(
-        interaction, matches, destination_name
-    ):
-        return
-
-    if len(matches) > 1:
-        error_embed = embed.create_search_error_embed(
-            "Multiple destinations", destination_name
-        )
-        error_embed.add_field(
-            name="Fetching matching destinations...", value=""
-        )
-        await interaction.followup.send(embeds=[error_embed])
-
-        error_embed.clear_fields()
-
-        for match in matches:
-            embed.add_address(error_embed, match)
-
-        return await interaction.edit_original_response(embeds=[error_embed])
-
-    db.execute(
-        "DELETE FROM destinations WHERE user_id = ? AND destination_id = ?",
-        interaction.user.id,
-        matches[0]["id"]
-    )
-
-    success_embed = create_destinations_embed(f"Removed {matches[0]['name']}!")
-
-    if remaining_entities:
-        for entity in remaining_entities:
-            embed.add_address(success_embed, entity)
-    else:
-        add_no_destinations(success_embed)
-
-    await interaction.followup.send(embeds=[success_embed])
+    await interaction.response.send_message(embed=success_embed)
 
 
 async def view(interaction):
-    await interaction.response.defer()
-
     destinations = get_user_destinations(interaction)
 
     message_embed = create_destinations_embed("Destinations")
 
     if destinations:
-        for destination in destinations:
-            entity = themeparks.get_entity(destination["destination_id"])
-            embed.add_address(message_embed, entity)
+        tasks = []
+
+        async with aiohttp.ClientSession() as session:
+            for destination in destinations:
+                tasks.append(asyncio.create_task(
+                    themeparks.get_entity(
+                        session, destination["destination_id"]
+                    )
+                ))
+
+            entities = await asyncio.gather(*tasks)
+
+        embed.add_addresses(message_embed, entities)
     else:
         add_no_destinations(message_embed)
 
-    await interaction.followup.send(embeds=[message_embed])
+    await interaction.response.send_message(embed=message_embed)
 
 
 def add_no_destinations(embed):
@@ -179,6 +196,6 @@ async def validate_destinations(interaction, destinations, destination_name):
     message_embed = embed.create_search_error_embed(
         "No destinations", destination_name
     )
-    await interaction.followup.send(embeds=[message_embed])
+    await interaction.response.send_message(embed=message_embed)
 
     return False

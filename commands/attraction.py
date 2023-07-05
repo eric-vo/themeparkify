@@ -1,3 +1,6 @@
+import asyncio
+
+import aiohttp
 import helpers.database as db
 import helpers.decorators as decorators
 import helpers.embed as embed
@@ -6,59 +9,73 @@ import helpers.themeparks as themeparks
 
 @decorators.require_destinations
 async def get(interaction, park_name, attraction_name, destination_name):
-    await interaction.response.defer()
-
     destination_ids = db.get_user_destinations(interaction.user.id)
 
-    attractions = themeparks.search_for_entities(
-        attraction_name,
-        destination_ids,
-        park_name,
-        destination_name,
-        "attraction"
+    async with aiohttp.ClientSession() as session:
+        attractions = await themeparks.search_for_entities(
+            session,
+            attraction_name,
+            destination_ids,
+            park_name,
+            destination_name,
+            "attraction"
+        )
+
+        if not await validate_attractions(
+            interaction, attractions, attraction_name
+        ):
+            return
+
+        if len(attractions) > 1:
+            error_embed = embed.create_search_error_embed(
+                "Multiple attractions", attraction_name
+            )
+
+            tasks = []
+            for i, attraction in enumerate(attractions):
+                tasks.append(asyncio.create_task(
+                    themeparks.get_entity(session, attraction["id"])
+                ))
+
+                if i >= embed.MAX_FIELDS - 1:
+                    break
+
+            entities = await asyncio.gather(*tasks)
+            embed.add_addresses(error_embed, entities)
+
+            return await interaction.response.send_message(embed=error_embed)
+
+        attraction_entity = await themeparks.get_entity(
+            session, attractions[0]["id"]
+        )
+
+        attraction_task, park_task = (
+            asyncio.create_task(themeparks.get_entity(
+                session, attractions[0]["id"], "live"
+            )),
+            asyncio.create_task(themeparks.get_entity(
+                session, attraction_entity["parkId"]
+            ))
+        )
+
+        live_attraction, park = await attraction_task, await park_task
+
+    message_embed = embed.create_embed(
+        live_attraction["name"], park["name"]
     )
 
-    if not await validate_attractions(
-        interaction, attractions, attraction_name
-    ):
-        return
+    live_data = live_attraction["liveData"][0]
 
-    if len(attractions) > 1:
-        error_embed = embed.create_search_error_embed(
-            "Multiple attractions", attraction_name
-        )
-        error_embed.add_field(
-            name="Fetching matching attractions...", value=""
-        )
-        await interaction.followup.send(embeds=[error_embed])
+    wait = live_data['queue']['STANDBY']['waitTime']
 
-        error_embed.clear_fields()
-
-        for i, attraction in enumerate(attractions):
-            entity = themeparks.get_entity(attraction["id"])
-            embed.add_address(error_embed, entity)
-
-            if i >= embed.MAX_FIELDS - 1:
-                break
-
-        return await interaction.edit_original_response(embeds=[error_embed])
-
-    attraction_data = themeparks.get_entity(attractions[0]["id"], "live")
-
-    attraction_embed = embed.create_embed(
-        attraction_data["name"], attractions[0]["park_name"]
-    )
-
-    attraction = attraction_data['live_data'][0]
-
-    attraction_embed.add_field(
+    message_embed.add_field(
         name="Wait time",
-        value=f"`{attraction['queue']['STANDBY']['waitTime']}` minutes",
+        value=f"`{wait}` minutes" if wait is not None else f"`{wait}`",
         inline=False
     )
-    attraction_embed.add_field(
+    message_embed.add_field(
         name="Status",
-        value=f"`{attraction['status']}`",
+        value=f"`{live_data['status']}`",
         inline=False
     )
 
@@ -70,7 +87,7 @@ async def get(interaction, park_name, attraction_name, destination_name):
 
     # TODO: Add operating hours if they exist
 
-    await interaction.followup.send(embeds=[attraction_embed])
+    await interaction.response.send_message(embed=message_embed)
 
 
 def create_error_embed(error):
@@ -92,6 +109,6 @@ async def validate_attractions(interaction, attractions, attraction_name):
     message_embed = create_search_error_embed(
         "No attractions", attraction_name
     )
-    await interaction.followup.send(embeds=[message_embed])
+    await interaction.send_message(embeds=[message_embed])
 
     return False

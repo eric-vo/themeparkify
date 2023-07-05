@@ -1,5 +1,4 @@
 import discord
-import openapi_client
 
 EMBED_DEFAULTS = {
     "color": discord.Color(0x00a8fc)
@@ -8,22 +7,23 @@ EMBED_DEFAULTS = {
 MAX_FIELDS = 25
 
 
-def add_address(embed, entity):
-    try:
-        location = entity["location"]
-        address = (
-            "[Google Maps]"
-            "(https://www.google.com/maps/place/"
-            f"{location['latitude']},{location['longitude']})"
-        )
-    except openapi_client.ApiAttributeError:
-        address = ""
+def add_addresses(embed, entities):
+    for entity in entities:
+        if "location" in entity:
+            location = entity["location"]
+            address = (
+                "[Google Maps]"
+                "(https://www.google.com/maps/place/"
+                f"{location['latitude']},{location['longitude']})"
+            )
+        else:
+            address = ""
 
-    embed.add_field(
-        name=entity["name"],
-        value=address,
-        inline=False
-    )
+        embed.add_field(
+            name=entity["name"],
+            value=address,
+            inline=False
+        )
 
 
 def create_embed(title, description, color=EMBED_DEFAULTS["color"]):

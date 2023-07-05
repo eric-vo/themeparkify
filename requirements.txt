@@ -1,4 +1,3 @@
 cs50
 discord.py
-git+https://github.com/ThemeParks/ThemeParks_Python.git
 python-dotenv
