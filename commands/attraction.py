@@ -9,6 +9,8 @@ import helpers.themeparks as themeparks
 
 @decorators.require_destinations
 async def get(interaction, park_name, attraction_name, destination_name):
+    await interaction.response.defer()
+
     destination_ids = db.get_user_destinations(interaction.user.id)
 
     async with aiohttp.ClientSession() as session:
@@ -41,9 +43,9 @@ async def get(interaction, park_name, attraction_name, destination_name):
                     break
 
             entities = await asyncio.gather(*tasks)
-            embed.add_addresses(error_embed, entities)
+            await embed.add_addresses(error_embed, entities, session)
 
-            return await interaction.response.send_message(embed=error_embed)
+            return await interaction.followup.send(embed=error_embed)
 
         attraction_entity = await themeparks.get_entity(
             session, attractions[0]["id"]
@@ -66,7 +68,10 @@ async def get(interaction, park_name, attraction_name, destination_name):
 
     live_data = live_attraction["liveData"][0]
 
-    wait = live_data['queue']['STANDBY']['waitTime']
+    if "queue" in live_data:
+        wait = live_data['queue']['STANDBY']['waitTime']
+    else:
+        wait = None
 
     message_embed.add_field(
         name="Wait time",
@@ -87,7 +92,7 @@ async def get(interaction, park_name, attraction_name, destination_name):
 
     # TODO: Add operating hours if they exist
 
-    await interaction.response.send_message(embed=message_embed)
+    await interaction.followup.send(embed=message_embed)
 
 
 def create_error_embed(error):
@@ -109,6 +114,6 @@ async def validate_attractions(interaction, attractions, attraction_name):
     message_embed = create_search_error_embed(
         "No attractions", attraction_name
     )
-    await interaction.send_message(embeds=[message_embed])
+    await interaction.followup.send(embed=message_embed)
 
     return False

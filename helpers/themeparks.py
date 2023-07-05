@@ -27,12 +27,11 @@ async def get_entity(session, entity_id, type=None, year=None, month=None):
         return await response.json()
 
 
-# park_query is required to improve searching times
 async def search_for_entities(
     session,
     query,
     destination_ids,
-    park_query,
+    park_query=None,
     destination_query=None,
     entity_type=None
 ):
@@ -42,12 +41,21 @@ async def search_for_entities(
     """
 
     if destination_query is not None:
+        if park_query is not None:
+            parks = await search_for_parks(
+                session, park_query, destination_ids, destination_query
+            )
+        else:
+            parks = await search_for_parks(
+                session, "", destination_ids, destination_query
+            )
+    elif park_query is not None:
         parks = await search_for_parks(
-            session, park_query, destination_ids, destination_query
+            session, park_query, destination_ids
         )
     else:
         parks = await search_for_parks(
-            session, park_query, destination_ids
+            session, "", destination_ids
         )
 
     if entity_type is not None:

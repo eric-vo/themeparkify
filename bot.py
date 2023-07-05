@@ -51,8 +51,8 @@ class Attraction(app_commands.Group):
     async def get(
         self,
         interaction,
-        park_name: str,
         attraction_name: str,
+        park_name: str = None,
         destination_name: str = None
     ):
         await attraction.get(
@@ -71,6 +71,10 @@ class Destination(app_commands.Group):
     )
     async def add(self, interaction, destination_name: str):
         await destination.add(interaction, destination_name)
+
+    @app_commands.command(description="Clear your destination list.")
+    async def clear(self, interaction):
+        await destination.clear(interaction)
 
     @app_commands.command(
         description="Remove a destination from the search list."

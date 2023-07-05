@@ -1,4 +1,8 @@
+import asyncio
+
 import discord
+
+import helpers.themeparks as themeparks
 
 EMBED_DEFAULTS = {
     "color": discord.Color(0x00a8fc)
@@ -7,12 +11,34 @@ EMBED_DEFAULTS = {
 MAX_FIELDS = 25
 
 
-def add_addresses(embed, entities):
+async def add_addresses(embed, entities, session):
+    park_tasks, destination_tasks = [], []
     for entity in entities:
+        park_tasks.append(asyncio.create_task(
+            get_park(session, entity)
+        ))
+        destination_tasks.append(asyncio.create_task(
+            get_destination(session, entity)
+        ))
+
+    parks = await asyncio.gather(*park_tasks)
+    destinations = await asyncio.gather(*destination_tasks)
+
+    for entity, park, destination in zip(entities, parks, destinations):
         if "location" in entity:
+            place = ""
+
+            if park is not None:
+                place += f"{park['name']} - "
+            if destination is not None:
+                place += f"{destination['name']}"
+
+            if not place:
+                place = "Google Maps"
+
             location = entity["location"]
             address = (
-                "[Google Maps]"
+                f"[{place}]"
                 "(https://www.google.com/maps/place/"
                 f"{location['latitude']},{location['longitude']})"
             )
@@ -20,7 +46,7 @@ def add_addresses(embed, entities):
             address = ""
 
         embed.add_field(
-            name=entity["name"],
+            name=entity['name'],
             value=address,
             inline=False
         )
@@ -40,3 +66,17 @@ def create_search_error_embed(error, query_name):
         f"{error} were found containing `{query_name}`."
     )
     return error_embed
+
+
+async def get_park(session, entity):
+    if "parkId" in entity:
+        return await themeparks.get_entity(session, entity["parkId"])
+
+    return
+
+
+async def get_destination(session, entity):
+    if "destinationId" in entity:
+        return await themeparks.get_entity(session, entity["destinationId"])
+
+    return

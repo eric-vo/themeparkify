@@ -7,6 +7,8 @@ import helpers.themeparks as themeparks
 
 
 async def add(interaction, destination_name):
+    await interaction.response.defer()
+
     current_destinations = get_user_destinations(interaction)
 
     if len(current_destinations) >= 25:
@@ -15,7 +17,7 @@ async def add(interaction, destination_name):
             "Try removing some with `/destination remove`!"
         )
 
-        return await interaction.response.send_message(embed=error_embed)
+        return await interaction.followup.send(embed=error_embed)
 
     async with aiohttp.ClientSession() as session:
         destinations = await themeparks.search_for_destinations(
@@ -42,9 +44,9 @@ async def add(interaction, destination_name):
                     break
 
             entities = await asyncio.gather(*tasks)
-            embed.add_addresses(error_embed, entities)
+            await embed.add_addresses(error_embed, entities, session)
 
-            return await interaction.response.send_message(embed=error_embed)
+            return await interaction.followup.send(embed=error_embed)
 
         destination_id = destinations[0]["id"]
 
@@ -62,7 +64,7 @@ async def add(interaction, destination_name):
                 "is already in your list of destinations!"
             )
 
-            return await interaction.response.send_message(embed=error_embed)
+            return await interaction.followup.send(embed=error_embed)
 
         db.execute(
             "INSERT INTO destinations (user_id, destination_id) "
@@ -85,12 +87,28 @@ async def add(interaction, destination_name):
 
         entities = await asyncio.gather(*tasks)
 
-    embed.add_addresses(success_embed, entities)
+        await embed.add_addresses(success_embed, entities, session)
 
-    await interaction.response.send_message(embed=success_embed)
+    await interaction.followup.send(embed=success_embed)
+
+
+async def clear(interaction):
+    await interaction.response.defer()
+
+    db.execute(
+        "DELETE FROM destinations WHERE user_id = ?",
+        interaction.user.id
+    )
+
+    success_embed = create_destinations_embed("Destinations cleared!")
+    add_no_destinations(success_embed)
+
+    await interaction.followup.send(embed=success_embed)
 
 
 async def remove(interaction, destination_name):
+    await interaction.response.defer()
+
     current_destinations = get_user_destinations(interaction)
 
     destination_name = destination_name.strip().lower()
@@ -122,9 +140,9 @@ async def remove(interaction, destination_name):
                 "Multiple destinations", destination_name
             )
 
-            embed.add_addresses(error_embed, matches)
+            await embed.add_addresses(error_embed, matches, session)
 
-            return await interaction.response.send_message(embed=error_embed)
+            return await interaction.followup.send(embed=error_embed)
 
         db.execute(
             "DELETE FROM destinations "
@@ -139,14 +157,18 @@ async def remove(interaction, destination_name):
         )
 
         if remaining_entities:
-            embed.add_addresses(success_embed, remaining_entities)
+            await embed.add_addresses(
+                success_embed, remaining_entities, session
+            )
         else:
             add_no_destinations(success_embed)
 
-    await interaction.response.send_message(embed=success_embed)
+    await interaction.followup.send(embed=success_embed)
 
 
 async def view(interaction):
+    await interaction.response.defer()
+
     destinations = get_user_destinations(interaction)
 
     message_embed = create_destinations_embed("Destinations")
@@ -164,11 +186,11 @@ async def view(interaction):
 
             entities = await asyncio.gather(*tasks)
 
-        embed.add_addresses(message_embed, entities)
+        await embed.add_addresses(message_embed, entities, session)
     else:
         add_no_destinations(message_embed)
 
-    await interaction.response.send_message(embed=message_embed)
+    await interaction.followup.send(embed=message_embed)
 
 
 def add_no_destinations(embed):
@@ -196,6 +218,6 @@ async def validate_destinations(interaction, destinations, destination_name):
     message_embed = embed.create_search_error_embed(
         "No destinations", destination_name
     )
-    await interaction.response.send_message(embed=message_embed)
+    await interaction.followup.send(embed=message_embed)
 
     return False
