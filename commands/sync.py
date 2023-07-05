@@ -1,5 +1,4 @@
 async def sync_commands(interaction, tree, guild=None):
-    print("Syncing commands...")
     await interaction.response.defer()
 
     if guild is not None:
@@ -7,5 +6,4 @@ async def sync_commands(interaction, tree, guild=None):
     else:
         await tree.sync()
 
-    print("Synced!")
     await interaction.followup.send("Synced!")
