@@ -9,9 +9,9 @@ import helpers.themeparks as themeparks
 async def add(interaction, destination_name):
     await interaction.response.defer()
 
-    current_destinations = get_user_destinations(interaction)
+    current_destination_ids = db.get_user_destination_ids(interaction.user.id)
 
-    if len(current_destinations) >= 25:
+    if len(current_destination_ids) >= 25:
         error_embed = embed.create_error_embed(
             "You have reached the max number of supported destinations (25).\n"
             "Try removing some with `/destination remove`!"
@@ -77,12 +77,14 @@ async def add(interaction, destination_name):
             f"Added {destinations[0]['name']}!"
         )
 
-        current_destinations = get_user_destinations(interaction)
+        current_destination_ids = db.get_user_destination_ids(
+            interaction.user.id
+        )
 
         tasks = []
-        for destination in current_destinations:
+        for id in current_destination_ids:
             tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, destination["destination_id"])
+                themeparks.get_entity(session, id)
             ))
 
         entities = await asyncio.gather(*tasks)
@@ -92,7 +94,7 @@ async def add(interaction, destination_name):
     await interaction.followup.send(embed=success_embed)
 
 
-async def clear(interaction):
+async def clear_added(interaction):
     await interaction.response.defer()
 
     db.execute(
@@ -109,7 +111,7 @@ async def clear(interaction):
 async def remove(interaction, destination_name):
     await interaction.response.defer()
 
-    current_destinations = get_user_destinations(interaction)
+    current_destination_ids = db.get_user_destination_ids(interaction.user.id)
 
     destination_name = destination_name.strip().lower()
 
@@ -118,9 +120,9 @@ async def remove(interaction, destination_name):
 
     async with aiohttp.ClientSession() as session:
         tasks = []
-        for destination in current_destinations:
+        for id in current_destination_ids:
             tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, destination["destination_id"])
+                themeparks.get_entity(session, id)
             ))
 
         entities = await asyncio.gather(*tasks)
@@ -166,22 +168,20 @@ async def remove(interaction, destination_name):
     await interaction.followup.send(embed=success_embed)
 
 
-async def view(interaction):
+async def view_added(interaction):
     await interaction.response.defer()
 
-    destinations = get_user_destinations(interaction)
+    current_destination_ids = db.get_user_destination_ids(interaction.user.id)
 
     message_embed = create_destinations_embed("Destinations")
 
-    if destinations:
+    if current_destination_ids:
         tasks = []
 
         async with aiohttp.ClientSession() as session:
-            for destination in destinations:
+            for id in current_destination_ids:
                 tasks.append(asyncio.create_task(
-                    themeparks.get_entity(
-                        session, destination["destination_id"]
-                    )
+                    themeparks.get_entity(session, id)
                 ))
 
             entities = await asyncio.gather(*tasks)
@@ -202,13 +202,6 @@ def create_destinations_embed(title):
         title, "Here are your currently added destinations."
     )
     return message_embed
-
-
-def get_user_destinations(interaction):
-    return db.execute(
-        "SELECT * FROM destinations WHERE user_id = ?",
-        interaction.user.id
-    )
 
 
 async def validate_destinations(interaction, destinations, destination_name):

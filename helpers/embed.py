@@ -11,7 +11,10 @@ EMBED_DEFAULTS = {
 MAX_FIELDS = 25
 
 
-async def add_addresses(embed, entities, session):
+async def add_addresses(embed, entities, session, wait_thresholds=None):
+    if wait_thresholds is None:
+        wait_thresholds = tuple(None for _ in entities)
+
     park_tasks, destination_tasks = [], []
     for entity in entities:
         park_tasks.append(asyncio.create_task(
@@ -24,7 +27,14 @@ async def add_addresses(embed, entities, session):
     parks = await asyncio.gather(*park_tasks)
     destinations = await asyncio.gather(*destination_tasks)
 
-    for entity, park, destination in zip(entities, parks, destinations):
+    for entity, park, destination, threshold in (
+        zip(entities, parks, destinations, wait_thresholds)
+    ):
+        threshold_string = (
+            f"Threshold: `{threshold}` minutes"
+            if threshold is not None else ""
+        )
+
         if "location" in entity:
             place = ""
 
@@ -46,7 +56,7 @@ async def add_addresses(embed, entities, session):
             address = ""
 
         embed.add_field(
-            name=entity['name'],
+            name=f"{entity['name']}\n{threshold_string}",
             value=address,
             inline=False
         )

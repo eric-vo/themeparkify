@@ -39,6 +39,10 @@ async def sync_commands(interaction):
 class Attraction(app_commands.Group):
     """Get/manage attractions."""
 
+    @app_commands.command(description="Clear all tracked attractions.")
+    async def clear_tracked(self, interaction):
+        await attraction.clear_tracked(interaction)
+
     @app_commands.command(description="Get information for an attraction.")
     @app_commands.describe(
         attraction_name=(
@@ -56,8 +60,44 @@ class Attraction(app_commands.Group):
         destination_name: str = None
     ):
         await attraction.get(
-            interaction, park_name, attraction_name, destination_name
+            interaction,
+            attraction_name,
+            park_name,
+            destination_name
         )
+
+    @app_commands.command(description="Track an attraction.")
+    async def track(
+        self,
+        interaction,
+        attraction_name: str,
+        wait_threshold: app_commands.Range[int, 0],
+        park_name: str = None,
+        destination_name: str = None
+    ):
+        await attraction.track(
+            interaction,
+            attraction_name,
+            wait_threshold,
+            park_name,
+            destination_name
+        )
+
+    @app_commands.command(description="Untrack an attraction.")
+    async def untrack(
+        self,
+        interaction,
+        attraction_name: str,
+        park_name: str = None,
+        destination_name: str = None
+    ):
+        await attraction.untrack(
+            interaction, attraction_name, park_name, destination_name
+        )
+
+    @app_commands.command(description="View tracked attrations.")
+    async def view_tracked(self, interaction):
+        await attraction.view_tracked(interaction)
 
 
 class Destination(app_commands.Group):
@@ -73,8 +113,8 @@ class Destination(app_commands.Group):
         await destination.add(interaction, destination_name)
 
     @app_commands.command(description="Clear your destination list.")
-    async def clear(self, interaction):
-        await destination.clear(interaction)
+    async def clear_added(self, interaction):
+        await destination.clear_added(interaction)
 
     @app_commands.command(
         description="Remove a destination from the search list."
@@ -88,10 +128,10 @@ class Destination(app_commands.Group):
         await destination.remove(interaction, destination_name)
 
     @app_commands.command(
-        description="View your added destinations."
+        description="View added destinations."
     )
-    async def view(self, interaction):
-        await destination.view(interaction)
+    async def view_added(self, interaction):
+        await destination.view_added(interaction)
 
 
 main()
