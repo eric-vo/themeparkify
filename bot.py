@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import discord
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 import commands.attraction as attraction
 import commands.destination as destination
 import commands.sync as sync
+import helpers.track_attractions as track_attractions
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -29,6 +31,10 @@ def main():
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}!")
+
+    while True:
+        await track_attractions.track(client)
+        await asyncio.sleep(5)
 
 
 @tree.command(description="Sync application commands.", guild=GUILD)

@@ -15,7 +15,8 @@ async def add_addresses(embed, entities, session, wait_thresholds=None):
     if wait_thresholds is None:
         wait_thresholds = tuple(None for _ in entities)
 
-    park_tasks, destination_tasks = [], []
+    park_tasks = []
+    destination_tasks = []
     for entity in entities:
         park_tasks.append(asyncio.create_task(
             get_park(session, entity)
@@ -82,11 +83,7 @@ async def get_park(session, entity):
     if "parkId" in entity:
         return await themeparks.get_entity(session, entity["parkId"])
 
-    return
-
 
 async def get_destination(session, entity):
     if "destinationId" in entity:
         return await themeparks.get_entity(session, entity["destinationId"])
-
-    return

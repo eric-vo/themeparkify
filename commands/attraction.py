@@ -80,7 +80,7 @@ async def get(interaction, attraction_name, park_name, destination_name):
     live_data = live_attraction["liveData"][0]
 
     if "queue" in live_data:
-        wait = live_data['queue']['STANDBY']['waitTime']
+        wait = live_data["queue"]["STANDBY"]["waitTime"]
     else:
         wait = None
 
@@ -169,7 +169,8 @@ async def track(
 
         if duplicates:
             db.execute(
-                "UPDATE tracks SET wait_threshold = ? "
+                "UPDATE tracks "
+                "SET wait_threshold = ?, reached_threshold = 0 "
                 "WHERE user_id = ?",
                 wait_threshold,
                 interaction.user.id
