@@ -12,7 +12,7 @@ import helpers.track_attractions as track_attractions
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD = discord.Object(id=int(os.getenv("GUILD_ID")))
+GUILD = discord.Object(int(os.getenv("GUILD_ID")))
 
 intents = discord.Intents.default()
 
@@ -54,9 +54,7 @@ class Attraction(app_commands.Group):
         attraction_name=(
             "The attraction to search for. Type all of part of the name."
         ),
-        park_name=(
-            "The theme park to search. Type all or part of the name."
-        )
+        park_name=("The theme park to search. Type all or part of the name.")
     )
     async def get(
         self,
@@ -66,10 +64,7 @@ class Attraction(app_commands.Group):
         destination_name: str = None
     ):
         await attraction.get(
-            interaction,
-            attraction_name,
-            park_name,
-            destination_name
+            interaction, attraction_name, park_name, destination_name
         )
 
     @app_commands.command(description="Track an attraction.")
@@ -133,11 +128,10 @@ class Destination(app_commands.Group):
     async def remove(self, interaction, destination_name: str):
         await destination.remove(interaction, destination_name)
 
-    @app_commands.command(
-        description="View added destinations."
-    )
+    @app_commands.command(description="View added destinations.")
     async def view_added(self, interaction):
         await destination.view_added(interaction)
 
 
-main()
+if __name__ == "__main__":
+    main()

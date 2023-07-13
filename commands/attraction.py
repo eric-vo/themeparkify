@@ -1,6 +1,11 @@
 import asyncio
+import io
 
 import aiohttp
+import discord
+import matplotlib.pyplot as plt
+from dateutil import parser
+
 import helpers.database as db
 import helpers.decorators as decorators
 import helpers.embed as embed
@@ -95,7 +100,45 @@ async def get(interaction, attraction_name, park_name, destination_name):
         inline=False
     )
 
-    # TODO: Add the wait forecast if it exists for that attraction
+    # Adapted from
+    # https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
+    if "forecast" in live_data:
+        hours = []
+        wait_times = []
+
+        plt.figure()
+
+        plt.title("Wait Forecast")
+        plt.xlabel("Time")
+        plt.ylabel("Wait (minutes)")
+
+        # https://stackoverflow.com/questions/10998621/rotate-axis-tick-labels
+        plt.xticks(rotation=45, ha='right')
+
+        plt.grid()
+
+        for entry in live_data["forecast"]:
+            datetime = parser.parse(entry["time"])
+
+            hours.append(f"{datetime.hour}:{datetime.minute:02}")
+            wait_times.append(entry['waitTime'])
+
+        plt.plot(hours, wait_times)
+
+        fig = plt.gcf()
+
+        buf = io.BytesIO()
+        fig.savefig(buf)
+        buf.seek(0)
+
+        img_file = discord.File(buf, filename="image.png")
+
+        message_embed.set_image(url="attachment://image.png")
+
+        return await interaction.followup.send(
+            file=img_file, embed=message_embed
+        )
+
     # TODO: Add return times if it exists for that attraction
 
     # We can maybe add notifications
@@ -159,28 +202,32 @@ async def track(
 
             return await interaction.followup.send(embed=error_embed)
 
+        attraction_id = attractions[0]["id"]
+
         duplicates = db.execute(
             "SELECT * FROM tracks "
             "WHERE user_id = ? "
             "AND attraction_id = ?",
             interaction.user.id,
-            attractions[0]["id"]
+            attraction_id
         )
 
         if duplicates:
             db.execute(
                 "UPDATE tracks "
                 "SET wait_threshold = ?, reached_threshold = 0 "
-                "WHERE user_id = ?",
+                "WHERE user_id = ? "
+                "AND attraction_id = ?",
                 wait_threshold,
-                interaction.user.id
+                interaction.user.id,
+                attraction_id
             )
         else:
             db.execute(
                 "INSERT INTO tracks (user_id, attraction_id, wait_threshold) "
                 "VALUES (?, ?, ?)",
                 interaction.user.id,
-                attractions[0]["id"],
+                attraction_id,
                 wait_threshold
             )
 
