@@ -10,7 +10,7 @@ import helpers.themeparks as themeparks
 
 load_dotenv()
 STATUS_CHANNEL_ID = int(os.getenv("STATUS_CHANNEL_ID"))
-
+print(STATUS_CHANNEL_ID)
 
 async def track(client):
     channel = client.get_channel(STATUS_CHANNEL_ID)

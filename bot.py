@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import commands.attraction as attraction
 import commands.destination as destination
 import commands.sync as sync
+import commands.weather as weather
 import helpers.track_attractions as track_attractions
 
 load_dotenv()
@@ -24,14 +25,18 @@ tree = app_commands.CommandTree(client)
 def main():
     tree.add_command(Attraction(), guild=GUILD)
     tree.add_command(Destination(), guild=GUILD)
-
+    tree.add_command(Weather(), guild=GUILD)
+    
     client.run(DISCORD_TOKEN)
 
 
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}!")
-
+    
+    #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    #asyncio.run(weather.get_weather(interaction, city_name))
+    
     while True:
         await track_attractions.track(client)
         await asyncio.sleep(5)
@@ -139,5 +144,18 @@ class Destination(app_commands.Group):
     async def view_added(self, interaction):
         await destination.view_added(interaction)
 
+class Weather(app_commands.Group):
+    #Weather related commands
+    
+    @app_commands.command(
+        description="Get the weather forecast for a city.")
+    
+    @app_commands.describe(
+        themepark=(
+            "The city to get the weather forcast of."
+        )
+    )
+    async def get_park_forecast(self, interaction, themepark: str):
+        await weather.get_parK_forecast(interaction, themepark)
 
 main()
