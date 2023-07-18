@@ -23,7 +23,7 @@ CITY = "Chessington"
 UNIT = "Imperial"
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PIL')
 logger.setLevel(logging.INFO)
 
 
