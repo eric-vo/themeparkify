@@ -22,7 +22,7 @@ API_KEY = os.getenv("API_KEY")
 CITY = "Chessington"
 UNIT = "Imperial"
 
-
+# Source https://stackoverflow.com/questions/57169697/tkinter-imagetk-creates-unwanted-logs-in-the-log-file
 logger = logging.getLogger('PIL')
 logger.setLevel(logging.INFO)
 
