@@ -85,20 +85,72 @@ async def get(interaction, attraction_name, park_name, destination_name):
     live_data = live_attraction["liveData"][0]
 
     if "queue" in live_data:
-        wait = live_data["queue"]["STANDBY"]["waitTime"]
+        queue = live_data["queue"]
+        wait = queue["STANDBY"]["waitTime"]
+        has_queue = True
     else:
         wait = None
+        has_queue = False
 
     message_embed.add_field(
         name="Wait time",
-        value=f"`{wait}` minutes" if wait is not None else f"`{wait}`",
-        inline=False
+        value=f"`{wait}` minutes" if wait is not None else f"`{wait}`"
     )
+
     message_embed.add_field(
         name="Status",
-        value=f"`{live_data['status']}`",
-        inline=False
+        value=f"`{live_data['status']}`"
     )
+
+    if has_queue:
+        if "RETURN_TIME" in queue:
+            return_key = "RETURN_TIME"
+        elif "PAID_RETURN_TIME" in queue:
+            return_key = "PAID_RETURN_TIME"
+        else:
+            return_key = None
+
+        if return_key is not None:
+            return_data = queue[return_key]
+
+            state = return_data["state"]
+
+            if state == "AVAILABLE":
+                start = parser.parse(return_data["returnStart"])
+                return_string = f"`{start.hour}:{start.minute:02}`"
+            else:
+                return_string = f"`{state}`"
+
+            if "price" in return_data:
+                if state == "AVAILABLE":
+                    return_string = f"Time: {return_string}"
+
+                price = return_data["price"]
+                price_string = (
+                    "\nPrice: "
+                    f"`{(price['amount'] / 100):.2f} {price['currency']}`"
+                )
+            else:
+                price_string = ""
+
+            message_embed.add_field(
+                name="Return time",
+                value=return_string + price_string,
+                inline=False
+            )
+
+    if "operatingHours" in live_data:
+        for operation in live_data["operatingHours"]:
+            start = parser.parse(operation["startTime"])
+            end = parser.parse(operation["endTime"])
+
+            message_embed.add_field(
+                name=f"{operation['type']} hours",
+                value=(
+                    f"`{start.hour}:{start.minute:02}` "
+                    f"to `{end.hour}:{end.minute:02}`"
+                )
+            )
 
     # Adapted from
     # https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
@@ -109,18 +161,19 @@ async def get(interaction, attraction_name, park_name, destination_name):
         plt.figure()
 
         plt.title("Wait Forecast")
-        plt.xlabel("Time")
+        plt.xlabel("Hour")
         plt.ylabel("Wait (minutes)")
 
         # https://stackoverflow.com/questions/10998621/rotate-axis-tick-labels
-        plt.xticks(rotation=45, ha='right')
+        # plt.xticks(rotation=45, ha='right')
 
         plt.grid()
 
         for entry in live_data["forecast"]:
             datetime = parser.parse(entry["time"])
 
-            hours.append(f"{datetime.hour}:{datetime.minute:02}")
+            # hours.append(f"{datetime.hour}:{datetime.minute:02}")
+            hours.append(datetime.hour)
             wait_times.append(entry['waitTime'])
 
         plt.plot(hours, wait_times)

@@ -39,10 +39,10 @@ async def track(client):
 
         for entity in entities:
             park_tasks.append(asyncio.create_task(
-                get_park(session, entity)
+                embed.get_park(session, entity)
             ))
             destination_tasks.append(asyncio.create_task(
-                get_destination(session, entity)
+                embed.get_destination(session, entity)
             ))
 
         parks = await asyncio.gather(*park_tasks)
@@ -153,13 +153,3 @@ async def track(client):
                 await channel.send(
                     content=f"<@{row['user_id']}>", embed=status_embed
                 )
-
-
-async def get_park(session, entity):
-    if "parkId" in entity:
-        return await themeparks.get_entity(session, entity["parkId"])
-
-
-async def get_destination(session, entity):
-    if "destinationId" in entity:
-        return await themeparks.get_entity(session, entity["destinationId"])

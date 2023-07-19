@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 
 import discord
@@ -9,6 +10,8 @@ import commands.attraction as attraction
 import commands.destination as destination
 import commands.sync as sync
 import helpers.track_attractions as track_attractions
+
+logging.getLogger().setLevel(logging.INFO)
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
