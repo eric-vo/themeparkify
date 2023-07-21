@@ -36,7 +36,7 @@ async def get(interaction, attraction_name, park_name, destination_name):
             destination_ids,
             park_name,
             destination_name,
-            "attraction"
+            "attraction",
         )
 
         if not await validate_attractions(
@@ -51,9 +51,11 @@ async def get(interaction, attraction_name, park_name, destination_name):
 
             tasks = []
             for i, attraction in enumerate(attractions):
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, attraction["id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, attraction["id"])
+                    )
+                )
 
                 if i >= embed.MAX_FIELDS - 1:
                     break
@@ -68,19 +70,17 @@ async def get(interaction, attraction_name, park_name, destination_name):
         )
 
         attraction_task, park_task = (
-            asyncio.create_task(themeparks.get_entity(
-                session, attractions[0]["id"], "live"
-            )),
-            asyncio.create_task(themeparks.get_entity(
-                session, attraction_entity["parkId"]
-            ))
+            asyncio.create_task(
+                themeparks.get_entity(session, attractions[0]["id"], "live")
+            ),
+            asyncio.create_task(
+                themeparks.get_entity(session, attraction_entity["parkId"])
+            ),
         )
 
         live_attraction, park = await attraction_task, await park_task
 
-    message_embed = embed.create_embed(
-        live_attraction["name"], park["name"]
-    )
+    message_embed = embed.create_embed(live_attraction["name"], park["name"])
 
     live_data = live_attraction["liveData"][0]
 
@@ -94,13 +94,10 @@ async def get(interaction, attraction_name, park_name, destination_name):
 
     message_embed.add_field(
         name="Wait time",
-        value=f"`{wait}` minutes" if wait is not None else f"`{wait}`"
+        value=f"`{wait}` minutes" if wait is not None else f"`{wait}`",
     )
 
-    message_embed.add_field(
-        name="Status",
-        value=f"`{live_data['status']}`"
-    )
+    message_embed.add_field(name="Status", value=f"`{live_data['status']}`")
 
     if has_queue:
         if "RETURN_TIME" in queue:
@@ -136,7 +133,7 @@ async def get(interaction, attraction_name, park_name, destination_name):
             message_embed.add_field(
                 name="Return time",
                 value=return_string + price_string,
-                inline=False
+                inline=False,
             )
 
     if "operatingHours" in live_data:
@@ -149,7 +146,7 @@ async def get(interaction, attraction_name, park_name, destination_name):
                 value=(
                     f"`{start.hour}:{start.minute:02}` "
                     f"to `{end.hour}:{end.minute:02}`"
-                )
+                ),
             )
 
     # Adapted from
@@ -174,7 +171,7 @@ async def get(interaction, attraction_name, park_name, destination_name):
 
             # hours.append(f"{datetime.hour}:{datetime.minute:02}")
             hours.append(datetime.hour)
-            wait_times.append(entry['waitTime'])
+            wait_times.append(entry["waitTime"])
 
         plt.plot(hours, wait_times)
 
@@ -228,7 +225,7 @@ async def track(
             destination_ids,
             park_name,
             destination_name,
-            "attraction"
+            "attraction",
         )
 
         if not await validate_attractions(
@@ -243,9 +240,11 @@ async def track(
 
             tasks = []
             for i, attraction in enumerate(attractions):
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, attraction["id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, attraction["id"])
+                    )
+                )
 
                 if i >= embed.MAX_FIELDS - 1:
                     break
@@ -262,7 +261,7 @@ async def track(
             "WHERE user_id = ? "
             "AND attraction_id = ?",
             interaction.user.id,
-            attraction_id
+            attraction_id,
         )
 
         if duplicates:
@@ -273,7 +272,7 @@ async def track(
                 "AND attraction_id = ?",
                 wait_threshold,
                 interaction.user.id,
-                attraction_id
+                attraction_id,
             )
         else:
             db.execute(
@@ -281,7 +280,7 @@ async def track(
                 "VALUES (?, ?, ?)",
                 interaction.user.id,
                 attraction_id,
-                wait_threshold
+                wait_threshold,
             )
 
         success_embed = create_attractions_embed(
@@ -293,9 +292,11 @@ async def track(
         tasks = []
         wait_thresholds = tuple(row["wait_threshold"] for row in tracks)
         for row in tracks:
-            tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, row["attraction_id"])
-            ))
+            tasks.append(
+                asyncio.create_task(
+                    themeparks.get_entity(session, row["attraction_id"])
+                )
+            )
 
         entities = await asyncio.gather(*tasks)
 
@@ -319,7 +320,7 @@ async def untrack(interaction, attraction_name, park_name, destination_name):
             destination_ids,
             park_name,
             destination_name,
-            "attraction"
+            "attraction",
         )
 
         tracks = db.get_user_tracks(interaction.user.id)
@@ -344,9 +345,9 @@ async def untrack(interaction, attraction_name, park_name, destination_name):
 
             tasks = []
             for match in matching_ids:
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, match)
-                ))
+                tasks.append(
+                    asyncio.create_task(themeparks.get_entity(session, match))
+                )
 
             entities = await asyncio.gather(*tasks)
             await embed.add_addresses(error_embed, entities, session)
@@ -354,16 +355,12 @@ async def untrack(interaction, attraction_name, park_name, destination_name):
             return await interaction.followup.send(embed=error_embed)
 
         db.execute(
-            "DELETE FROM tracks "
-            "WHERE user_id = ? "
-            "AND attraction_id = ?",
+            "DELETE FROM tracks " "WHERE user_id = ? " "AND attraction_id = ?",
             interaction.user.id,
-            matching_ids[0]
+            matching_ids[0],
         )
 
-        success_embed = create_attractions_embed(
-            f"Untracked {matching_name}!"
-        )
+        success_embed = create_attractions_embed(f"Untracked {matching_name}!")
 
         tracks = db.get_user_tracks(interaction.user.id)
 
@@ -371,9 +368,11 @@ async def untrack(interaction, attraction_name, park_name, destination_name):
             tasks = []
             wait_thresholds = tuple(row["wait_threshold"] for row in tracks)
             for row in tracks:
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, row["attraction_id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, row["attraction_id"])
+                    )
+                )
 
             entities = await asyncio.gather(*tasks)
 
@@ -400,9 +399,11 @@ async def view_tracked(interaction):
 
         async with aiohttp.ClientSession() as session:
             for row in tracks:
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, row["attraction_id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, row["attraction_id"])
+                    )
+                )
 
                 thresholds.append(row["wait_threshold"])
 

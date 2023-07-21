@@ -43,9 +43,11 @@ async def forecast(interaction, destination_name):
 
             tasks = []
             for i, destination in enumerate(matches):
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, destination["id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, destination["id"])
+                    )
+                )
 
                 if i >= embed.MAX_FIELDS - 1:
                     break
@@ -73,7 +75,7 @@ async def forecast(interaction, destination_name):
 
         weather_embed = embed.create_embed(
             "Weather Forecast",
-            f"Here is the 5-day forecast for **{entity_data['name']}**."
+            f"Here is the 5-day forecast for **{entity_data['name']}**.",
         )
 
         # https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/

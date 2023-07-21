@@ -4,9 +4,7 @@ import discord
 
 import helpers.themeparks as themeparks
 
-EMBED_DEFAULTS = {
-    "color": discord.Color(0x00a8fc)
-}
+EMBED_DEFAULTS = {"color": discord.Color(0x00A8FC)}
 
 MAX_FIELDS = 25
 
@@ -18,22 +16,21 @@ async def add_addresses(embed, entities, session, wait_thresholds=None):
     park_tasks = []
     destination_tasks = []
     for entity in entities:
-        park_tasks.append(asyncio.create_task(
-            get_park(session, entity)
-        ))
-        destination_tasks.append(asyncio.create_task(
-            get_destination(session, entity)
-        ))
+        park_tasks.append(asyncio.create_task(get_park(session, entity)))
+        destination_tasks.append(
+            asyncio.create_task(get_destination(session, entity))
+        )
 
     parks = await asyncio.gather(*park_tasks)
     destinations = await asyncio.gather(*destination_tasks)
 
-    for entity, park, destination, threshold in (
-        zip(entities, parks, destinations, wait_thresholds)
+    for entity, park, destination, threshold in zip(
+        entities, parks, destinations, wait_thresholds
     ):
         threshold_string = (
             f"Threshold: `{threshold}` minutes"
-            if threshold is not None else ""
+            if threshold is not None
+            else ""
         )
 
         if "location" in entity:
@@ -59,7 +56,7 @@ async def add_addresses(embed, entities, session, wait_thresholds=None):
         embed.add_field(
             name=f"{entity['name']}\n{threshold_string}",
             value=address,
-            inline=False
+            inline=False,
         )
 
 

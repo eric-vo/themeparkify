@@ -1,5 +1,6 @@
-import aiohttp
 import asyncio
+
+import aiohttp
 
 import helpers.database as db
 import helpers.embed as embed
@@ -36,9 +37,11 @@ async def add(interaction, destination_name):
 
             tasks = []
             for i, destination in enumerate(destinations):
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, destination["id"])
-                ))
+                tasks.append(
+                    asyncio.create_task(
+                        themeparks.get_entity(session, destination["id"])
+                    )
+                )
 
                 if i >= embed.MAX_FIELDS - 1:
                     break
@@ -55,7 +58,7 @@ async def add(interaction, destination_name):
             "WHERE user_id = ? "
             "AND destination_id = ?",
             interaction.user.id,
-            destination_id
+            destination_id,
         )
 
         if duplicate_destinations:
@@ -70,7 +73,7 @@ async def add(interaction, destination_name):
             "INSERT INTO destinations (user_id, destination_id) "
             "VALUES (?, ?)",
             interaction.user.id,
-            destination_id
+            destination_id,
         )
 
         success_embed = create_destinations_embed(
@@ -83,9 +86,9 @@ async def add(interaction, destination_name):
 
         tasks = []
         for id in current_destination_ids:
-            tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, id)
-            ))
+            tasks.append(
+                asyncio.create_task(themeparks.get_entity(session, id))
+            )
 
         entities = await asyncio.gather(*tasks)
 
@@ -98,8 +101,7 @@ async def clear_added(interaction):
     await interaction.response.defer()
 
     db.execute(
-        "DELETE FROM destinations WHERE user_id = ?",
-        interaction.user.id
+        "DELETE FROM destinations WHERE user_id = ?", interaction.user.id
     )
 
     success_embed = create_destinations_embed("Destinations cleared!")
@@ -121,9 +123,9 @@ async def remove(interaction, destination_name):
     async with aiohttp.ClientSession() as session:
         tasks = []
         for id in current_destination_ids:
-            tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, id)
-            ))
+            tasks.append(
+                asyncio.create_task(themeparks.get_entity(session, id))
+            )
 
         entities = await asyncio.gather(*tasks)
         for entity in entities:
@@ -151,7 +153,7 @@ async def remove(interaction, destination_name):
             "WHERE user_id = ? "
             "AND destination_id = ?",
             interaction.user.id,
-            matches[0]["id"]
+            matches[0]["id"],
         )
 
         success_embed = create_destinations_embed(
@@ -180,9 +182,9 @@ async def view_added(interaction):
 
         async with aiohttp.ClientSession() as session:
             for id in current_destination_ids:
-                tasks.append(asyncio.create_task(
-                    themeparks.get_entity(session, id)
-                ))
+                tasks.append(
+                    asyncio.create_task(themeparks.get_entity(session, id))
+                )
 
             entities = await asyncio.gather(*tasks)
 

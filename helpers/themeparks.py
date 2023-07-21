@@ -33,7 +33,7 @@ async def search_for_entities(
     destination_ids,
     park_query=None,
     destination_query=None,
-    entity_type=None
+    entity_type=None,
 ):
     """Search for entities with the given queries and destination IDs.
 
@@ -50,13 +50,9 @@ async def search_for_entities(
                 session, "", destination_ids, destination_query
             )
     elif park_query is not None:
-        parks = await search_for_parks(
-            session, park_query, destination_ids
-        )
+        parks = await search_for_parks(session, park_query, destination_ids)
     else:
-        parks = await search_for_parks(
-            session, "", destination_ids
-        )
+        parks = await search_for_parks(session, "", destination_ids)
 
     if entity_type is not None:
         entity_type = entity_type.upper()
@@ -75,9 +71,7 @@ async def search_for_entities(
 
     for park in park_data:
         for child in park["children"]:
-            if (
-                entity_type is not None and entity_type != child["entityType"]
-            ):
+            if entity_type is not None and entity_type != child["entityType"]:
                 continue
 
             if query in child["name"].lower():
@@ -86,9 +80,7 @@ async def search_for_entities(
     return matches
 
 
-async def search_for_destinations(
-    session, query, destination_ids=None
-):
+async def search_for_destinations(session, query, destination_ids=None):
     """Search for a destination with the given queries and destination IDs.
 
     Returns a list of matching destinations.

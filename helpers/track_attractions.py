@@ -22,14 +22,18 @@ async def track(client):
 
     async with aiohttp.ClientSession() as session:
         for row in tracks:
-            live_tasks.append(asyncio.create_task(
-                themeparks.get_entity(
-                    session, row["attraction_id"], "live"
+            live_tasks.append(
+                asyncio.create_task(
+                    themeparks.get_entity(
+                        session, row["attraction_id"], "live"
+                    )
                 )
-            ))
-            entity_tasks.append(asyncio.create_task(
-                themeparks.get_entity(session, row["attraction_id"])
-            ))
+            )
+            entity_tasks.append(
+                asyncio.create_task(
+                    themeparks.get_entity(session, row["attraction_id"])
+                )
+            )
 
         live_attractions = await asyncio.gather(*live_tasks)
         entities = await asyncio.gather(*entity_tasks)
@@ -38,18 +42,18 @@ async def track(client):
         destination_tasks = []
 
         for entity in entities:
-            park_tasks.append(asyncio.create_task(
-                embed.get_park(session, entity)
-            ))
-            destination_tasks.append(asyncio.create_task(
-                embed.get_destination(session, entity)
-            ))
+            park_tasks.append(
+                asyncio.create_task(embed.get_park(session, entity))
+            )
+            destination_tasks.append(
+                asyncio.create_task(embed.get_destination(session, entity))
+            )
 
         parks = await asyncio.gather(*park_tasks)
         destinations = await asyncio.gather(*destination_tasks)
 
-    for row, attraction_data, entity, park, destination in (
-        zip(tracks, live_attractions, entities, parks, destinations)
+    for row, attraction_data, entity, park, destination in zip(
+        tracks, live_attractions, entities, parks, destinations
     ):
         if "location" in entity:
             place = f"{park['name']} - {destination['name']}"
@@ -76,17 +80,17 @@ async def track(client):
                     status_embed = embed.create_embed(
                         "Above threshold",
                         f"**{live_data['name']}** is over your threshold.\n"
-                        + address
+                        + address,
                     )
                     status_embed.add_field(
                         name="Wait time",
                         value=f"`{wait}` minutes",
-                        inline=False
+                        inline=False,
                     )
                     status_embed.add_field(
                         name="Threshold",
                         value=f"`{threshold}` minutes",
-                        inline=False
+                        inline=False,
                     )
 
                     db.execute(
@@ -94,7 +98,7 @@ async def track(client):
                         "SET reached_threshold = 0 "
                         "WHERE user_id = ? AND attraction_id = ?",
                         row["user_id"],
-                        row["attraction_id"]
+                        row["attraction_id"],
                     )
 
                     await channel.send(
@@ -104,18 +108,15 @@ async def track(client):
                 status_embed = embed.create_embed(
                     "Reached threshold!",
                     f"**{live_data['name']}** "
-                    "has reached your threshold.\n"
-                    + address
+                    "has reached your threshold.\n" + address,
                 )
                 status_embed.add_field(
                     name="Threshold",
                     value=f"`{threshold}` minutes",
-                    inline=False
+                    inline=False,
                 )
                 status_embed.add_field(
-                    name="Wait time",
-                    value=f"`{wait}` minutes",
-                    inline=False
+                    name="Wait time", value=f"`{wait}` minutes", inline=False
                 )
 
                 db.execute(
@@ -123,7 +124,7 @@ async def track(client):
                     "SET reached_threshold = 1 "
                     "WHERE user_id = ? AND attraction_id = ?",
                     row["user_id"],
-                    row["attraction_id"]
+                    row["attraction_id"],
                 )
 
                 await channel.send(
@@ -132,14 +133,15 @@ async def track(client):
         else:
             if row["reached_threshold"]:
                 status_message = (
-                    f"under {status.lower()}" if status == "REFURBISHMENT"
+                    f"under {status.lower()}"
+                    if status == "REFURBISHMENT"
                     else status.lower()
                 )
                 status_embed = embed.create_embed(
                     f"{live_data['name']} is {status_message}.",
                     f"{address}\n"
                     "You will be notified when the attraction is up "
-                    "and has reached your threshold."
+                    "and has reached your threshold.",
                 )
 
                 db.execute(
@@ -147,7 +149,7 @@ async def track(client):
                     "SET reached_threshold = 0 "
                     "WHERE user_id = ? AND attraction_id = ?",
                     row["user_id"],
-                    row["attraction_id"]
+                    row["attraction_id"],
                 )
 
                 await channel.send(

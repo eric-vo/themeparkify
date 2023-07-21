@@ -59,14 +59,14 @@ class Attraction(app_commands.Group):
         attraction_name=(
             "The attraction to search for. Type all of part of the name."
         ),
-        park_name=("The theme park to search. Type all or part of the name.")
+        park_name=("The theme park to search. Type all or part of the name."),
     )
     async def get(
         self,
         interaction,
         attraction_name: str,
         park_name: str = None,
-        destination_name: str = None
+        destination_name: str = None,
     ):
         await attraction.get(
             interaction, attraction_name, park_name, destination_name
@@ -79,14 +79,14 @@ class Attraction(app_commands.Group):
         attraction_name: str,
         wait_threshold: app_commands.Range[int, 0],
         park_name: str = None,
-        destination_name: str = None
+        destination_name: str = None,
     ):
         await attraction.track(
             interaction,
             attraction_name,
             wait_threshold,
             park_name,
-            destination_name
+            destination_name,
         )
 
     @app_commands.command(description="Untrack an attraction.")
@@ -95,7 +95,7 @@ class Attraction(app_commands.Group):
         interaction,
         attraction_name: str,
         park_name: str = None,
-        destination_name: str = None
+        destination_name: str = None,
     ):
         await attraction.untrack(
             interaction, attraction_name, park_name, destination_name
@@ -142,11 +142,10 @@ class Weather(app_commands.Group):
     # Weather related commands
 
     @app_commands.command(
-        description="Get the weather forecast for a destination.")
+        description="Get the weather forecast for a destination."
+    )
     @app_commands.describe(
-        destination_name=(
-            "The destination to get the weather forcast of."
-        )
+        destination_name=("The destination to get the weather forcast of.")
     )
     async def forecast(self, interaction, destination_name: str):
         await weather.forecast(interaction, destination_name)
