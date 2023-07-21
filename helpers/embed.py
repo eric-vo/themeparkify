@@ -78,6 +78,7 @@ def create_search_error_embed(error, query_name):
     )
     return error_embed
 
+
 def add_icon(embed, image_link):
     embed.set_thumbnail(url=image_link)
     return embed

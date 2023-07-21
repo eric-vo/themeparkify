@@ -29,17 +29,14 @@ def main():
     tree.add_command(Attraction(), guild=GUILD)
     tree.add_command(Destination(), guild=GUILD)
     tree.add_command(Weather(), guild=GUILD)
-    
+
     client.run(DISCORD_TOKEN)
 
 
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}!")
-    
-    #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    #asyncio.run(weather.get_weather(interaction, city_name))
-    
+
     while True:
         await track_attractions.track(client)
         await asyncio.sleep(5)
@@ -140,19 +137,20 @@ class Destination(app_commands.Group):
     async def view_added(self, interaction):
         await destination.view_added(interaction)
 
+
 class Weather(app_commands.Group):
-    #Weather related commands
-    
+    # Weather related commands
+
     @app_commands.command(
-        description="Get the weather forecast for a city.")
-    
+        description="Get the weather forecast for a destination.")
     @app_commands.describe(
-        themepark=(
-            "The city to get the weather forcast of."
+        destination_name=(
+            "The destination to get the weather forcast of."
         )
     )
-    async def get_park_forecast(self, interaction, themepark: str):
-        await weather.get_parK_forecast(interaction, themepark)
+    async def forecast(self, interaction, destination_name: str):
+        await weather.forecast(interaction, destination_name)
+
 
 if __name__ == "__main__":
     main()
