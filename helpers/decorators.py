@@ -15,7 +15,7 @@ def require_destinations(func):
                 "Try using `/destination add`!",
             )
 
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embeds=[embed_message]
             )
 
