@@ -29,7 +29,7 @@ An interesting feature in attraction data for Disney theme parks is the wait for
 
 `helpers/embed.py` contains useful functions for creating and modifying Discord embeds, such as generating errors or adding entities and their locations to the embed as fields.
 
-`.env` contains information like tokens, IDs, and API keys necessary for the bot to function. This file as declared in `.gitignore`.
+`.env` contains information like tokens, IDs, and API keys necessary for the bot to function. This file is declared in `.gitignore`.
 
 `.gitignore` ignores any non-important or sensitive files that should not be committed to the Git repository.
 
