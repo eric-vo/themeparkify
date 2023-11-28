@@ -1,7 +1,7 @@
 # Themeparkify
 #### Video Demo: https://youtu.be/ggNd7Tbj9O8
 #### Description:
-Themeparkify is a Discord bot that assists users with everything they need to plan their next trip to a theme park.
+Themeparkify is a Discord bot that assists users with everything they need to plan their next trip to a theme park. This was my CS50X final project.
 
 The bot includes features such as viewing the wait times, return times, operating hours, and wait forecasts for attractions. Users can also track when the wait time for a certain attraction reaches a certain threshold as well as get the weather forecast for a certain destination to get a sense of how hot/cold it may be.
 
