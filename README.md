@@ -1,7 +1,27 @@
 # Themeparkify
+A Discord bot to assist with all things theme parks.
+
+This is my final project for [CS50's Introduction to Computer Science.](https://cs50.harvard.edu/x)
 #### Video Demo: https://youtu.be/ggNd7Tbj9O8
+#### How to Run:
+1. Create a new [Discord application](https://discord.com/developers/applications), or use an existing one. Invite the application's bot to your desired Discord server with `bot` and `application.commands` scopes.
+2. Ensure you have [Python installed.](https://www.python.org/downloads/), and make sure it is added to PATH.
+3. Clone this repository.
+4. Open your terminal and navigate to the newly cloned repository.
+4. Create a file in the root directory of the cloned repository named `.venv` with the following:
+    ```
+    DISCORD_TOKEN=<YOUR_TOKEN>
+    GUILD_ID=<YOUR_SERVER_ID>
+    STATUS_CHANNEL_ID=<YOUR_CHANNEL_ID>
+    WEATHER_API_KEY=<YOUR_API_KEY>
+    ```
+    where `<YOUR_TOKEN>` is your bot's token, `<YOUR_SERVER_ID>` is your desired Discord server's ID, `<YOUR_CHANNEL_ID>` is the ID of the channel you want status updates in, and `<YOUR_API_KEY>` is your [OpenWeatherMap](https://openweathermap.org/api) API key.
+5. Execute `pip install -r requirements.txt` in your terminal.
+6. Open your terminal and navigate to the newly cloned repository.
+7. Execute `python bot.py` in your terminal.
+
 #### Description:
-Themeparkify is a Discord bot that assists users with everything they need to plan their next trip to a theme park. This was my CS50X final project.
+Themeparkify is a Discord bot that assists users with everything they need to plan their next trip to a theme park.
 
 The bot includes features such as viewing the wait times, return times, operating hours, and wait forecasts for attractions. Users can also track when the wait time for a certain attraction reaches a certain threshold as well as get the weather forecast for a certain destination to get a sense of how hot/cold it may be.
 
