@@ -1,8 +1,7 @@
 # Themeparkify
 A Discord bot to assist with all things theme parks.
-
-This is my final project for [CS50's Introduction to Computer Science.](https://cs50.harvard.edu/x)
 #### Video Demo: https://youtu.be/ggNd7Tbj9O8
+This is my final project for [CS50's Introduction to Computer Science.](https://cs50.harvard.edu/x)
 #### How to Run:
 1. Create a new [Discord application](https://discord.com/developers/applications), or use an existing one. Invite the application's bot to your desired Discord server with `bot` and `application.commands` scopes.
 2. Ensure you have [Python installed.](https://www.python.org/downloads/), and make sure it is added to PATH.
