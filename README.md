@@ -1,7 +1,6 @@
 # Themeparkify
 A Discord bot to assist with all things theme parks.
 #### Video Demo: https://youtu.be/ggNd7Tbj9O8
-This is my final project for [CS50's Introduction to Computer Science.](https://cs50.harvard.edu/x)
 
 <img width="853" alt="image" src="https://github.com/eric-vo/themeparkify/assets/99783770/dc0c4fb3-3a58-4300-9605-ad98d7ab9dcb">
 
